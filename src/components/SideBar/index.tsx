@@ -22,7 +22,10 @@ const SideBar: React.FC = () => {
 
       <MenuSvg className="menu-icon" onClick={handleMenuActive} />
 
-      <ul className={menuActived ? 'menu-actived' : ''}>
+      <ul
+        className={menuActived ? 'menu-actived' : ''}
+        onClick={() => setMenuActived(false)}
+      >
         <Link to="/entries">
           <li className={location.pathname === '/' ? 'current-page' : ''}>
             Balanço Patrimonial

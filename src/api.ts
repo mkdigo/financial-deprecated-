@@ -2,11 +2,13 @@ import { getToken, removeToken, setToken } from './helpers';
 import {
   IAccount,
   IAccountRequest,
+  IEntry,
+  IEntryRequest,
   IFetch,
   IGroup,
   ILogin,
   IResponse,
-  IResponseToken,
+  // IResponseToken,
   ISubroup,
 } from './interfaces';
 
@@ -28,15 +30,15 @@ export interface IResponse1 {
   data?: object;
 }
 
-interface IRes {
-  success: boolean;
-  data: object;
-  message: string;
-  access_token: string;
-  expires_in: number;
-  token_type: string;
-  errors: string;
-}
+// interface IRes {
+//   success: boolean;
+//   data: object;
+//   message: string;
+//   access_token: string;
+//   expires_in: number;
+//   token_type: string;
+//   errors: string;
+// }
 
 const firstRequest = async ({
   url,
@@ -173,6 +175,43 @@ const api = {
     const response = await request({
       url,
       method: 'get',
+      body: null,
+      token: getToken(),
+    });
+
+    return response;
+  },
+  entries: async (): Promise<{ success: boolean; data: IEntry[] }> => {
+    const url = apiURL + '/entries';
+    const response = await request({
+      url,
+      method: 'get',
+      body: null,
+      token: getToken(),
+    });
+
+    return response;
+  },
+  entriesStore: async (
+    body: IEntryRequest
+  ): Promise<{ success: boolean; data: IEntry; errors: string }> => {
+    const url = apiURL + '/entries';
+    const response = await request({
+      url,
+      method: 'post',
+      body,
+      token: getToken(),
+    });
+
+    return response;
+  },
+  entriesDestroy: async (
+    id: number
+  ): Promise<{ success: boolean; errors: string }> => {
+    const url = `${apiURL}/entries/${id}`;
+    const response = await request({
+      url,
+      method: 'delete',
       body: null,
       token: getToken(),
     });

@@ -61,3 +61,22 @@ export interface ISubroup {
   name: string;
   group_id: number;
 }
+
+export interface IEntryRequest {
+  date: string;
+  debit_id: string;
+  credit_id: string;
+  value: string;
+  note: string;
+}
+
+export interface IEntry {
+  id: number;
+  date: string;
+  debit_id: number;
+  debit_name: string;
+  credit_id: number;
+  credit_name: string;
+  value: number;
+  note: string;
+}

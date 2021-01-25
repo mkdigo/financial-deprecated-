@@ -62,6 +62,10 @@ export default createGlobalStyle`
     &:active {
       filter: brightness(0.8);
     }
+
+    svg {
+      width: 1em;
+    }
   }
 
   .btn-primary {
@@ -163,14 +167,20 @@ export default createGlobalStyle`
         flex-direction: column;
 
         li {
+          display: flex;
+          align-items: center;
           padding: 0.5rem 1rem;
 
           &:last-child {
-            text-align: right;
+            justify-content: flex-end;
 
             button + button {
               margin-left: 1rem;
             }
+          }
+
+          &.center {
+            justify-content: center;
           }
 
           label {
@@ -179,11 +189,62 @@ export default createGlobalStyle`
             font-weight: bold;
           }
 
-          input, select {
+          input, select, textarea {
             width: calc(100% - 100px);
           }
 
+          textarea {
+            height: 80px;
+          }
+        }
+      }
+    }
+  }
 
+  ul.card {
+    position: relative;
+    flex-direction: column;
+    border: solid 1px var(--color-gray);
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 1rem;
+
+    li {
+      display: flex;
+      padding: 0.3rem 0;
+
+      strong {
+        display: inline-block;
+        min-width: 120px;
+
+        @media(max-width: 426px) {
+          min-width: 100px;
+        }
+      }
+    }
+
+    div.card-buttons {
+      position: absolute;
+      display: flex;
+
+      top: 5px;
+      right: 5px;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 30px;
+        height: 30px;
+        padding: 0;
+
+        & + button {
+          margin-left: 1rem;
+        }
+
+        svg {
+          font-size: 1.2rem;
         }
       }
     }
