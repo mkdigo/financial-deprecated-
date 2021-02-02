@@ -41,7 +41,9 @@ export interface IUser {
 export interface IAccount {
   id: number;
   name: string;
+  group_id: number;
   group: string;
+  subgroup_id: number;
   subgroup: string;
 }
 
@@ -64,8 +66,8 @@ export interface ISubroup {
 
 export interface IEntryRequest {
   date: string;
-  debit_id: string;
-  credit_id: string;
+  debit_id: number;
+  credit_id: number;
   value: string;
   note: string;
 }
@@ -79,4 +81,37 @@ export interface IEntry {
   credit_name: string;
   value: number;
   note: string;
+}
+
+export interface IBalanceSheet {
+  assets: {
+    current: any;
+    longTerm: any;
+    property: any;
+  };
+  liabilities: {
+    current: any;
+    longTerm: any;
+  };
+  equity: any;
+  amounts: {
+    assets: number;
+    currentAssets: number;
+    longTermAssets: number;
+    property: number;
+    currentLiabilities: number;
+    longTermLiabilities: number;
+    equity: number;
+    liabilities: number;
+  };
+}
+
+export interface IIncomeStatement {
+  revenues: any;
+  expenses: any;
+  amounts: {
+    revenues: number;
+    expenses: number;
+    incomeBeforeTaxes: number;
+  };
 }

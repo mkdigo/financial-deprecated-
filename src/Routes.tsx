@@ -4,6 +4,7 @@ import Main from './components/Main';
 import SideBar from './components/SideBar';
 import { IPrivateRoute } from './interfaces';
 import Accounts from './pages/Accounts';
+import BalanceSheet from './pages/BalanceSheet';
 import Entries from './pages/Entries';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
@@ -34,6 +35,7 @@ const Routes: React.FC = () => {
     <Switch>
       <Route path="/" exact component={Home} />
       <PrivateRoute path="/accounts" exact component={Accounts} />
+      <PrivateRoute path="/balance_sheet" exact component={BalanceSheet} />
       <PrivateRoute path="/entries" exact component={Entries} />
       <Route component={NotFound} />
     </Switch>
