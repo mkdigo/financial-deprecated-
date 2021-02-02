@@ -2,10 +2,12 @@ import { getToken, removeToken, setToken } from './helpers';
 import {
   IAccount,
   IAccountRequest,
+  IBalanceSheet,
   IEntry,
   IEntryRequest,
   IFetch,
   IGroup,
+  IIncomeStatement,
   ILogin,
   IResponse,
   // IResponseToken,
@@ -159,6 +161,33 @@ const api = {
 
     return response;
   },
+  accountUpdate: async (
+    id: number,
+    body: IAccountRequest
+  ): Promise<{ success: boolean; data: IAccount; errors: string }> => {
+    const url = `${apiURL}/accounts/${id}`;
+    const response = await request({
+      url,
+      method: 'put',
+      body: body,
+      token: getToken(),
+    });
+
+    return response;
+  },
+  accountDestroy: async (
+    id: number
+  ): Promise<{ success: boolean; errors: string }> => {
+    const url = `${apiURL}/accounts/${id}`;
+    const response = await request({
+      url,
+      method: 'delete',
+      body: null,
+      token: getToken(),
+    });
+
+    return response;
+  },
   groups: async (): Promise<{ success: boolean; data: IGroup[] }> => {
     const url = apiURL + '/groups';
     const response = await request({
@@ -205,6 +234,20 @@ const api = {
 
     return response;
   },
+  entriesUpdate: async (
+    id: number,
+    body: IEntryRequest
+  ): Promise<{ success: boolean; data: IEntry; errors: string }> => {
+    const url = `${apiURL}/entries/${id}`;
+    const response = await request({
+      url,
+      method: 'put',
+      body: body,
+      token: getToken(),
+    });
+
+    return response;
+  },
   entriesDestroy: async (
     id: number
   ): Promise<{ success: boolean; errors: string }> => {
@@ -212,6 +255,22 @@ const api = {
     const response = await request({
       url,
       method: 'delete',
+      body: null,
+      token: getToken(),
+    });
+
+    return response;
+  },
+  balanceSheet: async (): Promise<{
+    success: boolean;
+    balance: IBalanceSheet;
+    incomeStatement: IIncomeStatement;
+  }> => {
+    const yearMonth = '2021-02';
+    const url = `${apiURL}/balance?yearMonth=${yearMonth}`;
+    const response = await request({
+      url,
+      method: 'get',
       body: null,
       token: getToken(),
     });

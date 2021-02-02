@@ -9,14 +9,19 @@ import useEntries from './useEntries';
 
 const Entries: React.FC = () => {
   const {
+    addInputDateRef,
     addModal,
     setAddModal,
+    editModal,
+    setEditModal,
+    handleEditModal,
+    handleEditEntrySubmit,
     deleteModal,
     setDeleteModal,
     handleEntrySubmit,
     accounts,
     entries,
-    addEntryData,
+    entryFormData,
     handleInputChange,
     handleDeleteModal,
     handleDeleteSubmit,
@@ -60,7 +65,7 @@ const Entries: React.FC = () => {
               <span style={{ whiteSpace: 'pre' }}>{entry.note}</span>
             </li>
             <div className="card-buttons">
-              <button type="button">
+              <button type="button" onClick={() => handleEditModal(entry)}>
                 <PencilSvg />
               </button>
               <button
@@ -88,15 +93,16 @@ const Entries: React.FC = () => {
                     type="date"
                     id="add-entry-date"
                     onChange={handleInputChange}
-                    value={addEntryData.date}
+                    value={entryFormData.date}
                     name="date"
+                    ref={addInputDateRef}
                     required
                   />
                 </li>
                 <li>
                   <label htmlFor="add-entry-debit_id">Débito:</label>
                   <select
-                    value={addEntryData.debit_id}
+                    value={entryFormData.debit_id}
                     onChange={handleInputChange}
                     id="add-entry-debit_id"
                     name="debit_id"
@@ -113,7 +119,7 @@ const Entries: React.FC = () => {
                 <li>
                   <label htmlFor="add-entry-credit">Crédito:</label>
                   <select
-                    value={addEntryData.credit_id}
+                    value={entryFormData.credit_id}
                     onChange={handleInputChange}
                     id="add-entry-credit_id"
                     name="credit_id"
@@ -134,7 +140,7 @@ const Entries: React.FC = () => {
                     id="add-entry-value"
                     name="value"
                     onChange={handleInputChange}
-                    value={addEntryData.value}
+                    value={entryFormData.value}
                     data-mask-number
                     required
                   />
@@ -144,7 +150,7 @@ const Entries: React.FC = () => {
                   <textarea
                     id="add-entry-note"
                     name="note"
-                    value={addEntryData.note}
+                    value={entryFormData.note}
                     onChange={handleInputChange}
                   />
                 </li>
@@ -154,10 +160,102 @@ const Entries: React.FC = () => {
                     className="btn-danger"
                     onClick={() => setAddModal(false)}
                   >
-                    Cancelar
+                    Fechar
                   </button>
                   <button type="submit" className="btn-primary">
                     Adicionar
+                  </button>
+                </li>
+              </ul>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Editar Lançamento</h2>
+
+            <form action="" onSubmit={handleEditEntrySubmit}>
+              <ul>
+                <li>
+                  <label htmlFor="add-entry-date">Data:</label>
+                  <input
+                    type="date"
+                    id="add-entry-date"
+                    onChange={handleInputChange}
+                    value={entryFormData.date}
+                    name="date"
+                    ref={addInputDateRef}
+                    required
+                  />
+                </li>
+                <li>
+                  <label htmlFor="add-entry-debit_id">Débito:</label>
+                  <select
+                    value={entryFormData.debit_id}
+                    onChange={handleInputChange}
+                    id="add-entry-debit_id"
+                    name="debit_id"
+                    required
+                  >
+                    <option value=""></option>
+                    {accounts.map((account) => (
+                      <option value={account.id} key={account.id}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+                <li>
+                  <label htmlFor="add-entry-credit">Crédito:</label>
+                  <select
+                    value={entryFormData.credit_id}
+                    onChange={handleInputChange}
+                    id="add-entry-credit_id"
+                    name="credit_id"
+                    required
+                  >
+                    <option value=""></option>
+                    {accounts.map((account) => (
+                      <option value={account.id} key={account.id}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+                <li>
+                  <label htmlFor="add-entry-value">Valor:</label>
+                  <input
+                    type="text"
+                    id="add-entry-value"
+                    name="value"
+                    onChange={handleInputChange}
+                    value={entryFormData.value}
+                    data-mask-number
+                    required
+                  />
+                </li>
+                <li>
+                  <label htmlFor="add-entry-note">Notas:</label>
+                  <textarea
+                    id="add-entry-note"
+                    name="note"
+                    value={entryFormData.note}
+                    onChange={handleInputChange}
+                  />
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    onClick={() => setEditModal(false)}
+                  >
+                    Fechar
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Editar
                   </button>
                 </li>
               </ul>

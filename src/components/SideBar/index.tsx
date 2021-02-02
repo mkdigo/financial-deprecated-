@@ -26,16 +26,16 @@ const SideBar: React.FC = () => {
         className={menuActived ? 'menu-actived' : ''}
         onClick={() => setMenuActived(false)}
       >
-        <Link to="/entries">
+        <Link to="/balance_sheet">
           <li className={location.pathname === '/' ? 'current-page' : ''}>
             Balanço Patrimonial
           </li>
         </Link>
-        <Link to="/entries">
+        {/* <Link to="/entries">
           <li className={location.pathname === '/' ? 'current-page' : ''}>
             DRE
           </li>
-        </Link>
+        </Link> */}
         <Link to="/accounts">
           <li
             className={location.pathname === '/accounts' ? 'current-page' : ''}

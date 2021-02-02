@@ -7,10 +7,18 @@ import { IAccount, IAccountRequest, IGroup, ISubroup } from '../../interfaces';
 interface IUseAccounts {
   accounts: IAccount[];
   groups: IGroup[];
-  addAccountData: IAccountRequest;
+  accountFormData: IAccountRequest;
+  availableSubgroups: ISubroup[];
   addModal: boolean;
   setAddModal: React.Dispatch<React.SetStateAction<boolean>>;
-  availableSubgroups: ISubroup[];
+  editModal: boolean;
+  setEditModal: React.Dispatch<React.SetStateAction<boolean>>;
+  handleEditModal: (account: IAccount) => void;
+  handleEditSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  deleteModal: boolean;
+  setDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
+  handleDeleteModal: (id: number) => void;
+  handleDeleteSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   handleAccountSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleAvailableSubgroups: (
@@ -26,15 +34,24 @@ export default function useAccounts(): IUseAccounts {
   const [subgroups, setSubgroups] = useState<ISubroup[]>([]);
   const [availableSubgroups, setAvailableSubgroups] = useState<ISubroup[]>([]);
 
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [deleteEntryId, setDeleteEntryId] = useState<number>(0);
+
   const [addModal, setAddModal] = useState<boolean>(false);
-  const [addAccountData, setAccountData] = useState<IAccountRequest>({
+  const [editModal, setEditModal] = useState<boolean>(false);
+  const [editEntryId, setEditEntryId] = useState<number>(0);
+  const [accountFormData, setAccountFormData] = useState<IAccountRequest>({
     name: '',
     group_id: '',
     subgroup_id: '',
   });
 
   const handleCloseAllModals = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') setAddModal(false);
+    if (event.key === 'Escape') {
+      setAddModal(false);
+      setEditModal(false);
+      setDeleteModal(false);
+    }
   };
 
   useEffect(() => {
@@ -66,10 +83,18 @@ export default function useAccounts(): IUseAccounts {
         (subgroup) => subgroup.group_id === group
       );
       setAvailableSubgroups(availables);
-      setAccountData((prev) => ({ ...prev, group_id: group, subgroup_id: '' }));
+      setAccountFormData((prev) => ({
+        ...prev,
+        group_id: group,
+        subgroup_id: '',
+      }));
     } else {
       setAvailableSubgroups([]);
-      setAccountData((prev) => ({ ...prev, group_id: '', subgroup_id: '' }));
+      setAccountFormData((prev) => ({
+        ...prev,
+        group_id: '',
+        subgroup_id: '',
+      }));
     }
   };
 
@@ -79,12 +104,12 @@ export default function useAccounts(): IUseAccounts {
     if (event.target.value) {
       const subgroup: number = parseInt(event.target.value);
 
-      setAccountData((prev) => ({
+      setAccountFormData((prev) => ({
         ...prev,
         subgroup_id: subgroup,
       }));
     } else {
-      setAccountData((prev) => ({
+      setAccountFormData((prev) => ({
         ...prev,
         subgroup_id: '',
       }));
@@ -97,10 +122,15 @@ export default function useAccounts(): IUseAccounts {
     event.preventDefault();
     setLoading(true);
 
-    api.accountStore(addAccountData).then((response) => {
+    api.accountStore(accountFormData).then((response) => {
       if (response.success) {
-        setAccounts((prev) => [...prev, response.data]);
+        setAccounts((prev) => [response.data, ...prev]);
         setAddModal(false);
+        setAccountFormData({
+          name: '',
+          group_id: 0,
+          subgroup_id: 0,
+        });
       } else {
         setError(true);
         setErrorMessage(response.errors);
@@ -112,19 +142,91 @@ export default function useAccounts(): IUseAccounts {
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ): void => {
-    setAccountData((prev) => ({
+    setAccountFormData((prev) => ({
       ...prev,
       [event.target.name]: event.target.value,
     }));
   };
 
+  const handleEditModal = (account: IAccount): void => {
+    const availables = subgroups.filter(
+      (subgroup) => subgroup.group_id === account.group_id
+    );
+    setAvailableSubgroups(availables);
+
+    setEditEntryId(account.id);
+    setAccountFormData({
+      name: account.name,
+      group_id: account.group_id,
+      subgroup_id: account.subgroup_id,
+    });
+    setEditModal(true);
+  };
+
+  const handleEditSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    setLoading(true);
+
+    api.accountUpdate(editEntryId, accountFormData).then((response) => {
+      if (response.success) {
+        const newAccounts = accounts.map((account) => {
+          if (account.id === editEntryId) return response.data;
+
+          return account;
+        });
+        setAccounts(newAccounts);
+        setEditModal(false);
+      } else {
+        setError(true);
+        setErrorMessage(response.errors);
+      }
+      setLoading(false);
+    });
+  };
+
+  const handleDeleteModal = (id: number): void => {
+    setDeleteEntryId(id);
+    setDeleteModal(true);
+  };
+
+  const handleDeleteSubmit = (
+    event: React.FormEvent<HTMLFormElement>
+  ): void => {
+    event.preventDefault();
+    setLoading(true);
+
+    api.accountDestroy(deleteEntryId).then((response) => {
+      if (response.success) {
+        const newAccounts = accounts.filter(
+          (account) => account.id !== deleteEntryId
+        );
+        setAccounts(newAccounts);
+        setDeleteModal(false);
+      } else {
+        setError(true);
+        setErrorMessage(
+          'Você não pode excluir essa conta! Uma conta só pode ser excluida se não houver lançamentos com ela. Exclua todos os lançamentos que usa essa conta antes.'
+        );
+      }
+      setLoading(false);
+    });
+  };
+
   return {
     accounts,
     groups,
-    addAccountData,
+    accountFormData,
+    availableSubgroups,
     addModal,
     setAddModal,
-    availableSubgroups,
+    editModal,
+    setEditModal,
+    handleEditModal,
+    handleEditSubmit,
+    deleteModal,
+    setDeleteModal,
+    handleDeleteModal,
+    handleDeleteSubmit,
     handleAccountSubmit,
     handleInputChange,
     handleAvailableGroups,
