@@ -261,12 +261,13 @@ const api = {
 
     return response;
   },
-  balanceSheet: async (): Promise<{
+  balanceSheet: async (
+    yearMonth: string
+  ): Promise<{
     success: boolean;
     balance: IBalanceSheet;
     incomeStatement: IIncomeStatement;
   }> => {
-    const yearMonth = '2021-02';
     const url = `${apiURL}/balance?yearMonth=${yearMonth}`;
     const response = await request({
       url,
