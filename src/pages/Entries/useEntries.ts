@@ -29,7 +29,9 @@ interface IUseEntries {
 }
 
 export default function useEntries(): IUseEntries {
-  const { setLoading, setError, setErrorMessage } = useContext(AppContext);
+  const { setLoading, setError, setErrorMessage, done } = useContext(
+    AppContext
+  );
   const addInputDateRef = useRef<HTMLInputElement>(null);
 
   const [addModal, setAddModal] = useState<boolean>(false);
@@ -122,6 +124,7 @@ export default function useEntries(): IUseEntries {
         }));
 
         addInputDateRef.current?.focus();
+        done();
       } else {
         setError(true);
         setErrorMessage(response.errors);
@@ -161,6 +164,7 @@ export default function useEntries(): IUseEntries {
 
         setEntries(newEntries);
         setEditModal(false);
+        done();
       } else {
         setError(true);
         setErrorMessage(response.errors);
@@ -187,6 +191,7 @@ export default function useEntries(): IUseEntries {
         );
         setEntries(newEntries);
         setDeleteModal(false);
+        done();
       } else {
         setError(true);
         setErrorMessage(response.errors);

@@ -7,9 +7,12 @@ import { IAccount, IAccountRequest, IGroup, ISubroup } from '../../interfaces';
 interface IUseAccounts {
   accounts: IAccount[];
   groups: IGroup[];
+  subgroups: ISubroup[];
   accountFormData: IAccountRequest;
   availableSubgroups: ISubroup[];
+  filterData: IFilter;
   addModal: boolean;
+  handleAddModal: () => void;
   setAddModal: React.Dispatch<React.SetStateAction<boolean>>;
   editModal: boolean;
   setEditModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,18 +24,30 @@ interface IUseAccounts {
   handleDeleteSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   handleAccountSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleFilterChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   handleAvailableSubgroups: (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => void;
   handleAvailableGroups: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
+interface IFilter {
+  group_id: number | '';
+  subgroup_id: number | '';
+}
+
 export default function useAccounts(): IUseAccounts {
-  const { setLoading, setError, setErrorMessage } = useContext(AppContext);
+  const { setLoading, setError, setErrorMessage, done } = useContext(
+    AppContext
+  );
   const [accounts, setAccounts] = useState<IAccount[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [subgroups, setSubgroups] = useState<ISubroup[]>([]);
   const [availableSubgroups, setAvailableSubgroups] = useState<ISubroup[]>([]);
+  const [filterData, setFilterData] = useState<IFilter>({
+    group_id: '',
+    subgroup_id: '',
+  });
 
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [deleteEntryId, setDeleteEntryId] = useState<number>(0);
@@ -45,6 +60,14 @@ export default function useAccounts(): IUseAccounts {
     group_id: '',
     subgroup_id: '',
   });
+
+  const resetFormData = (): void => {
+    setAccountFormData({
+      name: '',
+      group_id: '',
+      subgroup_id: '',
+    });
+  };
 
   const handleCloseAllModals = (event: KeyboardEvent): void => {
     if (event.key === 'Escape') {
@@ -64,15 +87,17 @@ export default function useAccounts(): IUseAccounts {
 
   useEffect(() => {
     setLoading(true);
-    api.accounts().then((response) => {
-      if (response.success) {
-        setAccounts(response.data.accounts);
-        setGroups(response.data.groups);
-        setSubgroups(response.data.subgroups);
-        setLoading(false);
-      }
-    });
-  }, [setLoading]);
+    api
+      .accounts(filterData.group_id, filterData.subgroup_id)
+      .then((response) => {
+        if (response.success) {
+          setAccounts(response.data.accounts);
+          setGroups(response.data.groups);
+          setSubgroups(response.data.subgroups);
+          setLoading(false);
+        }
+      });
+  }, [setLoading, filterData]);
 
   const handleAvailableSubgroups = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -116,6 +141,11 @@ export default function useAccounts(): IUseAccounts {
     }
   };
 
+  const handleAddModal = (): void => {
+    resetFormData();
+    setAddModal(true);
+  };
+
   const handleAccountSubmit = (
     event: React.FormEvent<HTMLFormElement>
   ): void => {
@@ -126,11 +156,8 @@ export default function useAccounts(): IUseAccounts {
       if (response.success) {
         setAccounts((prev) => [response.data, ...prev]);
         setAddModal(false);
-        setAccountFormData({
-          name: '',
-          group_id: 0,
-          subgroup_id: 0,
-        });
+        resetFormData();
+        done();
       } else {
         setError(true);
         setErrorMessage(response.errors);
@@ -143,6 +170,15 @@ export default function useAccounts(): IUseAccounts {
     event: React.ChangeEvent<HTMLInputElement>
   ): void => {
     setAccountFormData((prev) => ({
+      ...prev,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handleFilterChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
+    setFilterData((prev) => ({
       ...prev,
       [event.target.name]: event.target.value,
     }));
@@ -176,6 +212,8 @@ export default function useAccounts(): IUseAccounts {
         });
         setAccounts(newAccounts);
         setEditModal(false);
+        resetFormData();
+        done();
       } else {
         setError(true);
         setErrorMessage(response.errors);
@@ -202,6 +240,7 @@ export default function useAccounts(): IUseAccounts {
         );
         setAccounts(newAccounts);
         setDeleteModal(false);
+        done();
       } else {
         setError(true);
         setErrorMessage(
@@ -215,9 +254,12 @@ export default function useAccounts(): IUseAccounts {
   return {
     accounts,
     groups,
+    subgroups,
     accountFormData,
     availableSubgroups,
     addModal,
+    handleAddModal,
+    filterData,
     setAddModal,
     editModal,
     setEditModal,
@@ -229,6 +271,7 @@ export default function useAccounts(): IUseAccounts {
     handleDeleteSubmit,
     handleAccountSubmit,
     handleInputChange,
+    handleFilterChange,
     handleAvailableGroups,
     handleAvailableSubgroups,
   };

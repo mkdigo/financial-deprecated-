@@ -1,3 +1,28 @@
 import styled from 'styled-components';
 
 export const Container = styled.div``;
+
+export const Filters = styled.ul`
+  flex-direction: column;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: solid 1px var(--color-gray);
+
+  h3 {
+    padding: 0 0.5rem;
+  }
+
+  li {
+    padding: 0.5rem;
+
+    label {
+      display: inline-block;
+      width: 80px;
+    }
+
+    select {
+      width: calc(100% - 80px);
+      max-width: 350px;
+    }
+  }
+`;

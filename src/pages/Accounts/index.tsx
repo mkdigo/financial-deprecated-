@@ -3,7 +3,7 @@ import PencilSvg from '../../svg/PencilSvg';
 import PlusSvg from '../../svg/PlusSvg';
 import TrashSvg from '../../svg/TrashSvg';
 
-import { Container } from './styles';
+import { Container, Filters } from './styles';
 import useAccounts from './useAccounts';
 
 const Accounts: React.FC = () => {
@@ -11,9 +11,12 @@ const Accounts: React.FC = () => {
     accounts,
     accountFormData,
     groups,
+    subgroups,
     availableSubgroups,
+    filterData,
     addModal,
     setAddModal,
+    handleAddModal,
     editModal,
     setEditModal,
     handleEditModal,
@@ -24,6 +27,7 @@ const Accounts: React.FC = () => {
     handleDeleteModal,
     handleAccountSubmit,
     handleInputChange,
+    handleFilterChange,
     handleAvailableSubgroups,
     handleAvailableGroups,
   } = useAccounts();
@@ -34,11 +38,47 @@ const Accounts: React.FC = () => {
         <h1>Contas</h1>
 
         <div className="tools">
-          <button type="button" onClick={() => setAddModal(true)}>
+          <button type="button" onClick={handleAddModal}>
             <PlusSvg />
           </button>
         </div>
       </div>
+
+      <Filters>
+        <h3>Filtros</h3>
+        <li>
+          <label htmlFor="filter-group">Grupo</label>
+          <select
+            id="filter-group"
+            name="group_id"
+            value={filterData.group_id}
+            onChange={handleFilterChange}
+          >
+            <option value=""></option>
+            {groups.map((group) => (
+              <option value={group.id} key={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </li>
+        <li>
+          <label htmlFor="filter-subgroup">Subgrupo:</label>
+          <select
+            id="filter-subgroup"
+            name="subgroup_id"
+            value={filterData.subgroup_id}
+            onChange={handleFilterChange}
+          >
+            <option value=""></option>
+            {subgroups.map((subgroup) => (
+              <option value={subgroup.id} key={subgroup.id}>
+                {subgroup.name}
+              </option>
+            ))}
+          </select>
+        </li>
+      </Filters>
 
       {accounts.map((account) => (
         <ul className="card" key={account.id}>

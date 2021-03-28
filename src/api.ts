@@ -134,11 +134,14 @@ const api = {
     });
     return response;
   },
-  accounts: async (): Promise<{
+  accounts: async (
+    group_id: number | '' = '',
+    subgroup_id: number | '' = ''
+  ): Promise<{
     success: boolean;
     data: { accounts: IAccount[]; groups: IGroup[]; subgroups: ISubroup[] };
   }> => {
-    const url = apiURL + '/accounts';
+    const url = `${apiURL}/accounts?group_id=${group_id}&subgroup_id=${subgroup_id}`;
     const response = await request({
       url,
       method: 'get',

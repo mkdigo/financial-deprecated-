@@ -58,8 +58,10 @@ const SideBar: React.FC = () => {
             Contas a Receber
           </li>
         </Link>
-        <Link to="/entries">
-          <li className={location.pathname === '/' ? 'current-page' : ''}>
+        <Link to="/expenses">
+          <li
+            className={location.pathname === '/expenses' ? 'current-page' : ''}
+          >
             Despesas
           </li>
         </Link>
