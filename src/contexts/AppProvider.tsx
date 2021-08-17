@@ -1,27 +1,24 @@
 import React, { createContext, Dispatch, useState } from 'react';
-import Done from './components/Done';
-import Error from './components/Error';
-import Load from './components/Load';
+import Done from '../components/Done';
+import Error from '../components/Error';
+import Load from '../components/Load';
+
+export type TModal = '' | 'add' | 'edit' | 'delete';
 
 interface IAppContext {
   loading: boolean;
   setLoading: Dispatch<boolean>;
   error: boolean;
-  setError: Dispatch<boolean>;
   errorMessage: string;
-  setErrorMessage: Dispatch<string>;
+  handleError: (message: string | undefined) => void;
+  modal: boolean;
+  setModal: Dispatch<boolean>;
+  currentModal: TModal;
+  setCurrentModal: Dispatch<TModal>;
   done: () => void;
 }
 
-export const AppContext = createContext<IAppContext>({
-  loading: false,
-  error: false,
-  errorMessage: '',
-  setLoading: (): void => {},
-  setError: (): void => {},
-  setErrorMessage: (): void => {},
-  done: (): void => {},
-});
+export const AppContext = createContext<IAppContext>({} as any);
 
 const AppProvider: React.FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -30,6 +27,8 @@ const AppProvider: React.FC = ({ children }) => {
     'Algo de errado aconteceu'
   );
   const [renderDone, setRenderDone] = useState<boolean>(false);
+  const [modal, setModal] = useState<boolean>(false);
+  const [currentModal, setCurrentModal] = useState<TModal>('');
 
   const done = (): void => {
     setRenderDone(true);
@@ -38,15 +37,24 @@ const AppProvider: React.FC = ({ children }) => {
     }, 600);
   };
 
+  const handleError = (message: string | undefined): void => {
+    setError(true);
+    const text = message ? message : 'Something is wrong.';
+    setErrorMessage(text);
+  };
+
   return (
     <AppContext.Provider
       value={{
         loading,
         setLoading,
         error,
-        setError,
         errorMessage,
-        setErrorMessage,
+        handleError,
+        modal,
+        setModal,
+        currentModal,
+        setCurrentModal,
         done,
       }}
     >

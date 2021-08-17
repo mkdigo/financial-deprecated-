@@ -22,7 +22,7 @@ export const Container = styled.div`
   justify-content: center;
   user-select: none;
   -webkit-user-select: none;
-  z-index: 2;
+  z-index: 3;
 
   div.loader {
     position: relative;

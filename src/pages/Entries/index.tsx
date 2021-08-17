@@ -1,31 +1,36 @@
 import React from 'react';
-import { numberFormat } from '../../helpers';
+
+import EntryAdd from '../../components/EntryAdd';
+import EntryEdit from '../../components/EntryEdit';
+import Modal from '../../components/Modal';
+
 import PencilSvg from '../../svg/PencilSvg';
 import PlusSvg from '../../svg/PlusSvg';
+import SearchSvg from '../../svg/SearchSvg';
 import TrashSvg from '../../svg/TrashSvg';
 
-import { Container } from './styles';
+import { numberFormat } from '../../helpers';
+import useAppContext from '../../hooks/useAppContext';
 import useEntries from './useEntries';
+
+import { Container } from './styles';
 
 const Entries: React.FC = () => {
   const {
-    addInputDateRef,
-    addModal,
-    setAddModal,
-    editModal,
-    setEditModal,
-    handleEditModal,
-    handleEditEntrySubmit,
-    deleteModal,
-    setDeleteModal,
-    handleEntrySubmit,
+    search,
     accounts,
+    handleSetCurrentModal,
     entries,
-    entryFormData,
-    handleInputChange,
+    handleSetEntries,
+    handleSearchSubmit,
+    handleSearchInputChange,
+    editEntry,
+    handleEditModal,
     handleDeleteModal,
     handleDeleteSubmit,
   } = useEntries();
+
+  const { setModal, currentModal } = useAppContext();
 
   return (
     <Container className="container">
@@ -33,13 +38,25 @@ const Entries: React.FC = () => {
         <h1>Lançamentos</h1>
 
         <div className="tools">
-          <button type="button" onClick={() => setAddModal(true)}>
+          <button type="button" onClick={() => handleSetCurrentModal('add')}>
             <PlusSvg />
           </button>
         </div>
       </div>
 
-      <section className="filters">Filters</section>
+      <section className="filters">
+        <form onSubmit={handleSearchSubmit}>
+          <input
+            type="search"
+            value={search}
+            onChange={handleSearchInputChange}
+            placeholder="Busca"
+          />
+          <button type="submit">
+            <SearchSvg />
+          </button>
+        </form>
+      </section>
 
       <section className="data">
         {entries.map((entry) => (
@@ -80,214 +97,44 @@ const Entries: React.FC = () => {
         ))}
       </section>
 
-      {addModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Lançamento</h2>
-
-            <form action="" onSubmit={handleEntrySubmit}>
-              <ul>
-                <li>
-                  <label htmlFor="add-entry-date">Data:</label>
-                  <input
-                    type="date"
-                    id="add-entry-date"
-                    onChange={handleInputChange}
-                    value={entryFormData.date}
-                    name="date"
-                    ref={addInputDateRef}
-                    required
-                  />
-                </li>
-                <li>
-                  <label htmlFor="add-entry-debit_id">Débito:</label>
-                  <select
-                    value={entryFormData.debit_id}
-                    onChange={handleInputChange}
-                    id="add-entry-debit_id"
-                    name="debit_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {accounts.map((account) => (
-                      <option value={account.id} key={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <label htmlFor="add-entry-credit">Crédito:</label>
-                  <select
-                    value={entryFormData.credit_id}
-                    onChange={handleInputChange}
-                    id="add-entry-credit_id"
-                    name="credit_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {accounts.map((account) => (
-                      <option value={account.id} key={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <label htmlFor="add-entry-value">Valor:</label>
-                  <input
-                    type="text"
-                    id="add-entry-value"
-                    name="value"
-                    onChange={handleInputChange}
-                    value={entryFormData.value}
-                    data-mask-number
-                    required
-                  />
-                </li>
-                <li>
-                  <label htmlFor="add-entry-note">Notas:</label>
-                  <textarea
-                    id="add-entry-note"
-                    name="note"
-                    value={entryFormData.note}
-                    onChange={handleInputChange}
-                  />
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => setAddModal(false)}
-                  >
-                    Fechar
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Adicionar
-                  </button>
-                </li>
-              </ul>
-            </form>
-          </div>
-        </div>
+      {currentModal === 'add' && (
+        <Modal>
+          <EntryAdd accounts={accounts} handleSetEntries={handleSetEntries} />
+        </Modal>
       )}
 
-      {editModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Editar Lançamento</h2>
-
-            <form action="" onSubmit={handleEditEntrySubmit}>
-              <ul>
-                <li>
-                  <label htmlFor="add-entry-date">Data:</label>
-                  <input
-                    type="date"
-                    id="add-entry-date"
-                    onChange={handleInputChange}
-                    value={entryFormData.date}
-                    name="date"
-                    ref={addInputDateRef}
-                    required
-                  />
-                </li>
-                <li>
-                  <label htmlFor="add-entry-debit_id">Débito:</label>
-                  <select
-                    value={entryFormData.debit_id}
-                    onChange={handleInputChange}
-                    id="add-entry-debit_id"
-                    name="debit_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {accounts.map((account) => (
-                      <option value={account.id} key={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <label htmlFor="add-entry-credit">Crédito:</label>
-                  <select
-                    value={entryFormData.credit_id}
-                    onChange={handleInputChange}
-                    id="add-entry-credit_id"
-                    name="credit_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {accounts.map((account) => (
-                      <option value={account.id} key={account.id}>
-                        {account.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <label htmlFor="add-entry-value">Valor:</label>
-                  <input
-                    type="text"
-                    id="add-entry-value"
-                    name="value"
-                    onChange={handleInputChange}
-                    value={entryFormData.value}
-                    data-mask-number
-                    required
-                  />
-                </li>
-                <li>
-                  <label htmlFor="add-entry-note">Notas:</label>
-                  <textarea
-                    id="add-entry-note"
-                    name="note"
-                    value={entryFormData.note}
-                    onChange={handleInputChange}
-                  />
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => setEditModal(false)}
-                  >
-                    Fechar
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Editar
-                  </button>
-                </li>
-              </ul>
-            </form>
-          </div>
-        </div>
+      {currentModal === 'edit' && editEntry && (
+        <Modal>
+          <EntryEdit
+            accounts={accounts}
+            handleSetEntries={handleSetEntries}
+            entry={editEntry}
+          />
+        </Modal>
       )}
 
-      {deleteModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Excluir Lançamento</h2>
+      {currentModal === 'delete' && (
+        <Modal>
+          <h2>Excluir Lançamento</h2>
 
-            <form action="" onSubmit={handleDeleteSubmit}>
-              <ul>
-                <li className="center">Tem certeza que deseja excluir?</li>
-                <li>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => setDeleteModal(false)}
-                  >
-                    Não
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Sim
-                  </button>
-                </li>
-              </ul>
-            </form>
-          </div>
-        </div>
+          <form action="" onSubmit={handleDeleteSubmit}>
+            <ul>
+              <li className="center">Tem certeza que deseja excluir?</li>
+              <li>
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={() => setModal(false)}
+                >
+                  Não
+                </button>
+                <button type="submit" className="btn-primary">
+                  Sim
+                </button>
+              </li>
+            </ul>
+          </form>
+        </Modal>
       )}
     </Container>
   );

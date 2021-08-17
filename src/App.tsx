@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import AppProvider from './AppProvider';
+import { BrowserRouter } from 'react-router-dom';
+import AppProvider from './contexts/AppProvider';
+import AuthProvider from './contexts/AuthProvider';
 import GlobalStyles from './GlobalStyles';
 import Routes from './Routes';
 
@@ -9,11 +10,13 @@ const App: React.FC = () => {
     <>
       <GlobalStyles />
 
-      <AppProvider>
-        <Router>
-          <Routes />
-        </Router>
-      </AppProvider>
+      <AuthProvider>
+        <AppProvider>
+          <BrowserRouter basename={process.env.REACT_APP_PATH}>
+            <Routes />
+          </BrowserRouter>
+        </AppProvider>
+      </AuthProvider>
     </>
   );
 };

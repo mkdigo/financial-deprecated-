@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import BalanceSheetApi, {
+  IBalanceSheet,
+  IIncomeStatement,
+} from '../../api/BalanceSheetApi';
 import { makeInteger, numberFormat } from '../../helpers';
-import { IBalanceSheet, IIncomeStatement } from '../../interfaces';
 
 import { Container, SelectDate, Balance, IncomeStatement } from './styles';
 
@@ -57,14 +59,14 @@ const BalanceSheet: React.FC = () => {
   });
 
   useEffect(() => {
-    api
-      .balanceSheet(`${yearMonth.year}-${yearMonth.month}`)
-      .then((response) => {
-        if (response.success) {
-          setBalanceSheet(response.balance);
-          setIncomeStatement(response.incomeStatement);
-        }
-      });
+    console.log(`${yearMonth.year}-${yearMonth.month}`);
+    BalanceSheetApi.get(yearMonth.year, yearMonth.month).then((response) => {
+      console.log(response);
+      if (response.success && response.data) {
+        setBalanceSheet(response.data.balance);
+        setIncomeStatement(response.data.incomeStatement);
+      }
+    });
   }, [yearMonth]);
 
   const handleInputChange = (
@@ -92,12 +94,6 @@ const BalanceSheet: React.FC = () => {
     <Container className="container">
       <div className="title">
         <h1>Balanço Patrimonial</h1>
-
-        {/* <div className="tools">
-          <button type="button" onClick={() => setAddModal(true)}>
-            <PlusSvg />
-          </button>
-        </div> */}
       </div>
 
       <SelectDate>

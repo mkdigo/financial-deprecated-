@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import { ILogin } from '../../interfaces';
+import { Link, useHistory, useLocation } from 'react-router-dom';
+import AuthApi, { ILogin } from '../../api/AuthApi';
+import useAppContext from '../../hooks/useAppContext';
+import useAuthContext from '../../hooks/useAuthContext';
 import LogoSvg from '../../svg/LogoSvg';
-import api from '../../api';
 
 import { Container } from './styles';
 
 const Home: React.FC = () => {
+  const location = useLocation();
   const [data, setData] = useState<ILogin>({
     username: '',
     password: '',
   });
+
+  const { setLoading } = useAppContext();
+  const { setUser } = useAuthContext();
 
   const [error, setError] = useState<boolean>(false);
 
@@ -22,12 +27,17 @@ const Home: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    setLoading(true);
+    setError(false);
 
-    api.login(data).then((response) => {
-      if (response) {
-        setError(false);
-        history.push('/entries');
+    AuthApi.login(data).then((response) => {
+      if (response.success && response.data) {
+        setUser(response.data);
+        const path: string =
+          location.pathname === '/' ? '/balance_sheet' : location.pathname;
+        history.push(path);
       } else setError(true);
+      setLoading(false);
     });
   };
 

@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import api from '../../api';
-import { AppContext } from '../../AppProvider';
+import AccountApi, { IAccount } from '../../api/AccountApi';
+import EntryApi, { IEntryRequest } from '../../api/EntryApi';
+import { AppContext } from '../../contexts/AppProvider';
 import { makeInteger, numberFormat, today } from '../../helpers';
-import { IAccount, IEntryRequest } from '../../interfaces';
 import PlusSvg from '../../svg/PlusSvg';
 
 import { Container, Form } from './styles';
@@ -19,18 +19,15 @@ const Expenses: React.FC = () => {
     note: '',
   });
 
-  const { setLoading, setError, setErrorMessage, done } = useContext(
-    AppContext
-  );
+  const { setLoading, handleError, done } = useContext(AppContext);
 
   useEffect(() => {
-    api.accounts().then((response) => {
-      if (response.success) {
+    AccountApi.get().then((response) => {
+      if (response.success && response.data) {
         const debits = response.data.accounts.filter(
           (account) => account.subgroup_id === 8
         );
         setDebitAccounts(debits);
-
         const credits = response.data.accounts.filter(
           (account) => account.subgroup_id === 1
         );
@@ -55,14 +52,13 @@ const Expenses: React.FC = () => {
     setLoading(true);
     resetFormData();
 
-    api.entriesStore(entryFormData).then((response) => {
+    EntryApi.store(entryFormData).then((response) => {
       if (response.success) {
         // setAccounts((prev) => [response.data, ...prev]);
         resetFormData();
         done();
       } else {
-        setError(true);
-        setErrorMessage(response.errors);
+        handleError(response.message);
       }
       setLoading(false);
     });

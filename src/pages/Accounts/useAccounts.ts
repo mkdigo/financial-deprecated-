@@ -1,34 +1,24 @@
-import React, { useContext, useEffect } from 'react';
-import { useState } from 'react';
-import api from '../../api';
-import { AppContext } from '../../AppProvider';
-import { IAccount, IAccountRequest, IGroup, ISubroup } from '../../interfaces';
+import React, { useContext, useEffect, useState } from 'react';
+
+import { AppContext } from '../../contexts/AppProvider';
+import AccountApi, { IAccount, IAccountBody } from '../../api/AccountApi';
+import { IGroup } from '../../api/GroupApi';
+import { ISubgroup } from '../../api/SubgroupApi';
 
 interface IUseAccounts {
   accounts: IAccount[];
+  setAccounts: React.Dispatch<IAccount[]>;
   groups: IGroup[];
-  subgroups: ISubroup[];
-  accountFormData: IAccountRequest;
-  availableSubgroups: ISubroup[];
+  subgroups: ISubgroup[];
   filterData: IFilter;
-  addModal: boolean;
-  handleAddModal: () => void;
-  setAddModal: React.Dispatch<React.SetStateAction<boolean>>;
-  editModal: boolean;
-  setEditModal: React.Dispatch<React.SetStateAction<boolean>>;
-  handleEditModal: (account: IAccount) => void;
-  handleEditSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  deleteModal: boolean;
-  setDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
-  handleDeleteModal: (id: number) => void;
-  handleDeleteSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  handleAccountSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleFilterChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleAvailableSubgroups: (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => void;
-  handleAvailableGroups: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleAddAccount: () => void;
+  handleAddSubmit: (data: IAccountBody) => void;
+  editAccount: IAccountBody;
+  handleEditAccount: (account: IAccount) => void;
+  handleEditSubmit: (data: IAccountBody) => void;
+  handleDeleteAccount: (id: number) => void;
+  handleDeleteSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
 interface IFilter {
@@ -37,143 +27,37 @@ interface IFilter {
 }
 
 export default function useAccounts(): IUseAccounts {
-  const { setLoading, setError, setErrorMessage, done } = useContext(
-    AppContext
-  );
+  const { setLoading, done, setModal, setCurrentModal, handleError } =
+    useContext(AppContext);
+
   const [accounts, setAccounts] = useState<IAccount[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
-  const [subgroups, setSubgroups] = useState<ISubroup[]>([]);
-  const [availableSubgroups, setAvailableSubgroups] = useState<ISubroup[]>([]);
+  const [subgroups, setSubgroups] = useState<ISubgroup[]>([]);
   const [filterData, setFilterData] = useState<IFilter>({
     group_id: '',
     subgroup_id: '',
   });
-
-  const [deleteModal, setDeleteModal] = useState<boolean>(false);
-  const [deleteEntryId, setDeleteEntryId] = useState<number>(0);
-
-  const [addModal, setAddModal] = useState<boolean>(false);
-  const [editModal, setEditModal] = useState<boolean>(false);
-  const [editEntryId, setEditEntryId] = useState<number>(0);
-  const [accountFormData, setAccountFormData] = useState<IAccountRequest>({
+  const [editAccount, setEditAccount] = useState<IAccountBody>({
+    id: 0,
     name: '',
     group_id: '',
     subgroup_id: '',
   });
-
-  const resetFormData = (): void => {
-    setAccountFormData({
-      name: '',
-      group_id: '',
-      subgroup_id: '',
-    });
-  };
-
-  const handleCloseAllModals = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      setAddModal(false);
-      setEditModal(false);
-      setDeleteModal(false);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('keyup', handleCloseAllModals);
-
-    return () => {
-      window.removeEventListener('keyup', handleCloseAllModals);
-    };
-  }, []);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    api
-      .accounts(filterData.group_id, filterData.subgroup_id)
-      .then((response) => {
-        if (response.success) {
+    AccountApi.get(filterData.group_id, filterData.subgroup_id).then(
+      (response) => {
+        if (response.success && response.data) {
           setAccounts(response.data.accounts);
           setGroups(response.data.groups);
           setSubgroups(response.data.subgroups);
           setLoading(false);
         }
-      });
-  }, [setLoading, filterData]);
-
-  const handleAvailableSubgroups = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
-    if (event.target.value) {
-      const group: number = parseInt(event.target.value);
-      const availables = subgroups.filter(
-        (subgroup) => subgroup.group_id === group
-      );
-      setAvailableSubgroups(availables);
-      setAccountFormData((prev) => ({
-        ...prev,
-        group_id: group,
-        subgroup_id: '',
-      }));
-    } else {
-      setAvailableSubgroups([]);
-      setAccountFormData((prev) => ({
-        ...prev,
-        group_id: '',
-        subgroup_id: '',
-      }));
-    }
-  };
-
-  const handleAvailableGroups = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
-    if (event.target.value) {
-      const subgroup: number = parseInt(event.target.value);
-
-      setAccountFormData((prev) => ({
-        ...prev,
-        subgroup_id: subgroup,
-      }));
-    } else {
-      setAccountFormData((prev) => ({
-        ...prev,
-        subgroup_id: '',
-      }));
-    }
-  };
-
-  const handleAddModal = (): void => {
-    resetFormData();
-    setAddModal(true);
-  };
-
-  const handleAccountSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ): void => {
-    event.preventDefault();
-    setLoading(true);
-
-    api.accountStore(accountFormData).then((response) => {
-      if (response.success) {
-        setAccounts((prev) => [response.data, ...prev]);
-        setAddModal(false);
-        resetFormData();
-        done();
-      } else {
-        setError(true);
-        setErrorMessage(response.errors);
       }
-      setLoading(false);
-    });
-  };
-
-  const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    setAccountFormData((prev) => ({
-      ...prev,
-      [event.target.name]: event.target.value,
-    }));
-  };
+    );
+  }, [setLoading, filterData]);
 
   const handleFilterChange = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -184,47 +68,67 @@ export default function useAccounts(): IUseAccounts {
     }));
   };
 
-  const handleEditModal = (account: IAccount): void => {
-    const availables = subgroups.filter(
-      (subgroup) => subgroup.group_id === account.group_id
-    );
-    setAvailableSubgroups(availables);
-
-    setEditEntryId(account.id);
-    setAccountFormData({
-      name: account.name,
-      group_id: account.group_id,
-      subgroup_id: account.subgroup_id,
-    });
-    setEditModal(true);
+  const handleAddAccount = (): void => {
+    setCurrentModal('add');
+    setModal(true);
   };
 
-  const handleEditSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
-    event.preventDefault();
+  const handleAddSubmit = (data: IAccountBody): void => {
     setLoading(true);
-
-    api.accountUpdate(editEntryId, accountFormData).then((response) => {
-      if (response.success) {
-        const newAccounts = accounts.map((account) => {
-          if (account.id === editEntryId) return response.data;
-
-          return account;
-        });
+    AccountApi.store(data).then((response) => {
+      if (response.success && response.data) {
+        const newAccounts = accounts;
+        newAccounts.unshift(response.data);
         setAccounts(newAccounts);
-        setEditModal(false);
-        resetFormData();
+        setModal(false);
         done();
       } else {
-        setError(true);
-        setErrorMessage(response.errors);
+        handleError(
+          response.message ?? 'Algo de errado aconteceu. Tente novamente.'
+        );
       }
       setLoading(false);
     });
   };
 
-  const handleDeleteModal = (id: number): void => {
-    setDeleteEntryId(id);
-    setDeleteModal(true);
+  const handleEditAccount = (account: IAccount): void => {
+    setCurrentModal('edit');
+    setModal(true);
+    setEditAccount({
+      id: account.id,
+      name: account.name,
+      group_id: account.group_id,
+      subgroup_id: account.subgroup_id,
+    });
+  };
+
+  const handleEditSubmit = (data: IAccountBody): void => {
+    if (data.id) {
+      setLoading(true);
+
+      AccountApi.update(data.id, data).then((response) => {
+        if (response.success && response.data) {
+          const newAccounts = accounts.map((account) => {
+            if (account.id === response.data?.id) return response.data;
+            return account;
+          });
+          setAccounts(newAccounts);
+          setModal(false);
+          done();
+        } else {
+          handleError(
+            response.message ?? 'Algo de errado aconteceu. Tente novamente.'
+          );
+        }
+        setLoading(false);
+      });
+    }
+  };
+
+  const handleDeleteAccount = (id: number): void => {
+    setCurrentModal('delete');
+    setModal(true);
+    setDeleteId(id);
   };
 
   const handleDeleteSubmit = (
@@ -233,46 +137,40 @@ export default function useAccounts(): IUseAccounts {
     event.preventDefault();
     setLoading(true);
 
-    api.accountDestroy(deleteEntryId).then((response) => {
-      if (response.success) {
-        const newAccounts = accounts.filter(
-          (account) => account.id !== deleteEntryId
-        );
-        setAccounts(newAccounts);
-        setDeleteModal(false);
-        done();
-      } else {
-        setError(true);
-        setErrorMessage(
-          'Você não pode excluir essa conta! Uma conta só pode ser excluida se não houver lançamentos com ela. Exclua todos os lançamentos que usa essa conta antes.'
-        );
-      }
-      setLoading(false);
-    });
+    if (deleteId) {
+      AccountApi.destroy(deleteId).then((response) => {
+        if (response.success) {
+          const newAccounts = accounts.filter(
+            (account) => account.id !== deleteId
+          );
+          setAccounts(newAccounts);
+          setModal(false);
+          done();
+        } else {
+          handleError(
+            'Você não pode excluir essa conta! Uma conta só pode ser excluida se não houver lançamentos com ela. Exclua todos os lançamentos que usa essa conta antes.'
+          );
+        }
+        setLoading(false);
+      });
+    } else {
+      handleError('Nenhuma conta foi seleciona, tente novamente.');
+    }
   };
 
   return {
     accounts,
+    setAccounts,
     groups,
     subgroups,
-    accountFormData,
-    availableSubgroups,
-    addModal,
-    handleAddModal,
     filterData,
-    setAddModal,
-    editModal,
-    setEditModal,
-    handleEditModal,
-    handleEditSubmit,
-    deleteModal,
-    setDeleteModal,
-    handleDeleteModal,
-    handleDeleteSubmit,
-    handleAccountSubmit,
-    handleInputChange,
     handleFilterChange,
-    handleAvailableGroups,
-    handleAvailableSubgroups,
+    handleAddAccount,
+    handleAddSubmit,
+    editAccount,
+    handleEditAccount,
+    handleEditSubmit,
+    handleDeleteAccount,
+    handleDeleteSubmit,
   };
 }

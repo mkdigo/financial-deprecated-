@@ -82,10 +82,8 @@ const SideBar: React.FC = () => {
             Receitas
           </li>
         </Link>
-        <Link to="/">
-          <li className={location.pathname === '/' ? 'current-page' : ''}>
-            Sair
-          </li>
+        <Link to="/logout">
+          <li>Sair</li>
         </Link>
       </ul>
     </Container>

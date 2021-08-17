@@ -1,181 +1,97 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import api from '../../api';
-import { AppContext } from '../../AppProvider';
-import { makeInteger, numberFormat, today } from '../../helpers';
-import { IAccount, IEntry, IEntryRequest } from '../../interfaces';
+import React, { FormEvent, useContext, useEffect, useState } from 'react';
+import AccountApi, { IAccount } from '../../api/AccountApi';
+import EntryApi, { IEntry } from '../../api/EntryApi';
+import { AppContext, TModal } from '../../contexts/AppProvider';
 
 interface IUseEntries {
-  addInputDateRef: React.MutableRefObject<HTMLInputElement | null>;
-  addModal: boolean;
-  setAddModal: React.Dispatch<React.SetStateAction<boolean>>;
-  editModal: boolean;
-  setEditModal: React.Dispatch<React.SetStateAction<boolean>>;
-  deleteModal: boolean;
-  setDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
-  handleEditModal: (entry: IEntry) => void;
-  handleEntrySubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  handleEditEntrySubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  search: string;
   accounts: IAccount[];
-  handleInputChange: (
-    event:
-      | React.ChangeEvent<HTMLInputElement>
-      | React.ChangeEvent<HTMLSelectElement>
-      | React.ChangeEvent<HTMLTextAreaElement>
-  ) => void;
+  handleSetCurrentModal: (modalName: TModal) => void;
   entries: IEntry[];
-  entryFormData: IEntryRequest;
+  handleSetEntries: (entry: IEntry, edit?: boolean) => void;
+  handleSearchInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSearchSubmit: (event: FormEvent) => void;
+  editEntry: IEntry | undefined;
+  handleEditModal: (entry: IEntry) => void;
   handleDeleteModal: (id: number) => void;
   handleDeleteSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
 export default function useEntries(): IUseEntries {
-  const { setLoading, setError, setErrorMessage, done } = useContext(
-    AppContext
-  );
-  const addInputDateRef = useRef<HTMLInputElement>(null);
+  const { setLoading, done, setModal, handleError, setCurrentModal } =
+    useContext(AppContext);
 
-  const [addModal, setAddModal] = useState<boolean>(false);
-  const [editModal, setEditModal] = useState<boolean>(false);
-  const [editEntryId, setEditEntryId] = useState<number>(0);
-  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>('');
   const [accounts, setAccounts] = useState<IAccount[]>([]);
   const [entries, setEntries] = useState<IEntry[]>([]);
-  const [entryFormData, setEntryFormData] = useState<IEntryRequest>({
-    date: today(),
-    debit_id: 0,
-    credit_id: 0,
-    value: '',
-    note: '',
-  });
+
+  const [editEntry, setEditEntry] = useState<IEntry>();
   const [deleteEntryId, setDeleteEntryId] = useState<number>(0);
 
-  const handleCloseAllModals = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape') {
-      setAddModal(false);
-      setEditModal(false);
-      setDeleteModal(false);
+  // Load Accounts
+  useEffect(() => {
+    setLoading(true);
+    AccountApi.get().then((response) => {
+      if (response.success && response.data)
+        setAccounts(response.data.accounts);
+      setLoading(false);
+    });
+  }, [setLoading]);
+
+  // Load Entries
+  useEffect(() => {
+    setLoading(true);
+    EntryApi.get().then((response) => {
+      if (response.success && response.data) setEntries(response.data);
+      setLoading(false);
+    });
+  }, [setLoading]);
+
+  const handleSetCurrentModal = (modalName: TModal): void => {
+    setModal(true);
+    setCurrentModal(modalName);
+  };
+
+  const handleSetEntries = (entry: IEntry, edit: boolean = false): void => {
+    if (edit) {
+      const newEntries = entries.map((newEntry) => {
+        if (newEntry.id === entry.id) {
+          return entry;
+        } else return newEntry;
+      });
+      setEntries(newEntries);
+    } else {
+      const newEntries = entries;
+      newEntries.unshift(entry);
+      setEntries(newEntries);
     }
   };
 
-  useEffect(() => {
-    window.addEventListener('keyup', handleCloseAllModals);
-
-    return () => {
-      window.removeEventListener('keyup', handleCloseAllModals);
-    };
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    api.accounts().then((response) => {
-      if (response.success) setAccounts(response.data.accounts);
-      setLoading(false);
-    });
-  }, [setLoading]);
-
-  useEffect(() => {
-    setLoading(true);
-    api.entries().then((response) => {
-      if (response.success) setEntries(response.data);
-      setLoading(false);
-    });
-  }, [setLoading]);
-
-  const handleInputChange = (
-    event:
-      | React.ChangeEvent<HTMLInputElement>
-      | React.ChangeEvent<HTMLSelectElement>
-      | React.ChangeEvent<HTMLTextAreaElement>
+  const handleSearchInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
   ): void => {
-    let value: string = event.target.value;
-
-    if (event.target.dataset.maskNumber) {
-      value = makeInteger(event.target.value);
-      if (value !== '') {
-        value = numberFormat(parseInt(value));
-      }
-    }
-
-    setEntryFormData((prev) => ({
-      ...prev,
-      [event.target.name]: value,
-    }));
+    setSearch(event.target.value);
   };
 
-  const handleEntrySubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+  const handleSearchSubmit = (event: FormEvent): void => {
     event.preventDefault();
     setLoading(true);
-
-    const data = entryFormData;
-
-    data.value = makeInteger(data.value);
-
-    api.entriesStore(data).then((response) => {
-      if (response.success) {
-        const newEntries = entries;
-        newEntries.splice(0, 0, response.data);
-        setEntries(newEntries);
-        setEntryFormData((prev) => ({
-          ...prev,
-          debit_id: 0,
-          credit_id: 0,
-          value: '',
-          note: '',
-        }));
-
-        addInputDateRef.current?.focus();
-        done();
-      } else {
-        setError(true);
-        setErrorMessage(response.errors);
-      }
+    EntryApi.get(search).then((response) => {
+      if (response.success && response.data) setEntries(response.data);
       setLoading(false);
     });
   };
 
   const handleEditModal = (entry: IEntry): void => {
-    setEditEntryId(entry.id);
-    setEntryFormData({
-      date: entry.date,
-      debit_id: entry.debit_id,
-      credit_id: entry.credit_id,
-      value: numberFormat(entry.value),
-      note: entry.note ? entry.note : '',
-    });
-    setEditModal(true);
-  };
-
-  const handleEditEntrySubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ): void => {
-    event.preventDefault();
-    setLoading(true);
-
-    const data = entryFormData;
-
-    data.value = makeInteger(data.value);
-
-    api.entriesUpdate(editEntryId, entryFormData).then((response) => {
-      if (response.success) {
-        const newEntries = entries.map((entry) => {
-          if (entry.id === editEntryId) return response.data;
-          return entry;
-        });
-
-        setEntries(newEntries);
-        setEditModal(false);
-        done();
-      } else {
-        setError(true);
-        setErrorMessage(response.errors);
-      }
-      setLoading(false);
-    });
+    setCurrentModal('edit');
+    setModal(true);
+    setEditEntry(entry);
   };
 
   const handleDeleteModal = (id: number): void => {
     setDeleteEntryId(id);
-    setDeleteModal(true);
+    setCurrentModal('delete');
+    setModal(true);
   };
 
   const handleDeleteSubmit = (
@@ -184,37 +100,31 @@ export default function useEntries(): IUseEntries {
     event.preventDefault();
     setLoading(true);
 
-    api.entriesDestroy(deleteEntryId).then((response) => {
+    EntryApi.destroy(deleteEntryId).then((response) => {
       if (response.success) {
         const newEntries = entries.filter(
           (entry) => entry.id !== deleteEntryId
         );
         setEntries(newEntries);
-        setDeleteModal(false);
+        setModal(false);
         done();
       } else {
-        setError(true);
-        setErrorMessage(response.errors);
+        handleError(response.message);
       }
       setLoading(false);
     });
   };
 
   return {
-    addInputDateRef,
-    addModal,
-    setAddModal,
-    editModal,
-    setEditModal,
-    deleteModal,
-    setDeleteModal,
-    handleEditModal,
-    handleEntrySubmit,
-    handleEditEntrySubmit,
+    search,
     accounts,
-    handleInputChange,
+    handleSetCurrentModal,
     entries,
-    entryFormData,
+    handleSetEntries,
+    handleSearchInputChange,
+    handleSearchSubmit,
+    editEntry,
+    handleEditModal,
     handleDeleteModal,
     handleDeleteSubmit,
   };

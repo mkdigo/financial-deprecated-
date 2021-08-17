@@ -1,35 +1,34 @@
-import React from 'react';
+import React, { useContext } from 'react';
+
+import AccountAddForm from '../../components/AccountAddForm';
+import AccountEditForm from '../../components/AccountEditForm';
+import Modal from '../../components/Modal';
+
 import PencilSvg from '../../svg/PencilSvg';
 import PlusSvg from '../../svg/PlusSvg';
 import TrashSvg from '../../svg/TrashSvg';
 
-import { Container, Filters } from './styles';
+import { AppContext } from '../../contexts/AppProvider';
 import useAccounts from './useAccounts';
 
+import { Container, Filters } from './styles';
+
 const Accounts: React.FC = () => {
+  const { setModal, currentModal } = useContext(AppContext);
+
   const {
     accounts,
-    accountFormData,
     groups,
     subgroups,
-    availableSubgroups,
     filterData,
-    addModal,
-    setAddModal,
-    handleAddModal,
-    editModal,
-    setEditModal,
-    handleEditModal,
-    handleEditSubmit,
-    deleteModal,
-    setDeleteModal,
-    handleDeleteSubmit,
-    handleDeleteModal,
-    handleAccountSubmit,
-    handleInputChange,
     handleFilterChange,
-    handleAvailableSubgroups,
-    handleAvailableGroups,
+    handleAddAccount,
+    handleAddSubmit,
+    editAccount,
+    handleEditAccount,
+    handleEditSubmit,
+    handleDeleteAccount,
+    handleDeleteSubmit,
   } = useAccounts();
 
   return (
@@ -38,7 +37,7 @@ const Accounts: React.FC = () => {
         <h1>Contas</h1>
 
         <div className="tools">
-          <button type="button" onClick={handleAddModal}>
+          <button type="button" onClick={handleAddAccount}>
             <PlusSvg />
           </button>
         </div>
@@ -95,13 +94,13 @@ const Accounts: React.FC = () => {
             {account.subgroup}
           </li>
           <div className="card-buttons">
-            <button type="button" onClick={() => handleEditModal(account)}>
+            <button type="button" onClick={() => handleEditAccount(account)}>
               <PencilSvg />
             </button>
             <button
               type="button"
               className="btn-danger"
-              onClick={() => handleDeleteModal(account.id)}
+              onClick={() => handleDeleteAccount(account.id)}
             >
               <TrashSvg />
             </button>
@@ -109,170 +108,47 @@ const Accounts: React.FC = () => {
         </ul>
       ))}
 
-      {addModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Adicionar Conta</h2>
-
-            <form action="" onSubmit={handleAccountSubmit}>
-              <ul>
-                <li>
-                  <label htmlFor="add-account-name">Nome:</label>
-                  <input
-                    type="text"
-                    id="add-account-name"
-                    name="name"
-                    value={accountFormData.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </li>
-                <li>
-                  <label htmlFor="add-account-group">Grupo:</label>
-                  <select
-                    value={accountFormData.group_id}
-                    onChange={handleAvailableSubgroups}
-                    id="add-account-group"
-                    name="group_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {groups.map((group) => (
-                      <option value={group.id} key={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <label htmlFor="add-account-subgroup">Subgrupo:</label>
-                  <select
-                    value={accountFormData.subgroup_id}
-                    onChange={handleAvailableGroups}
-                    id="add-account-subgroup"
-                    name="subgroup_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {availableSubgroups.map((subgroup) => (
-                      <option value={subgroup.id} key={subgroup.id}>
-                        {subgroup.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => setAddModal(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Adicionar
-                  </button>
-                </li>
-              </ul>
-            </form>
-          </div>
-        </div>
+      {currentModal === 'add' && (
+        <Modal>
+          <AccountAddForm
+            groups={groups}
+            subgroups={subgroups}
+            handleAddSubmit={handleAddSubmit}
+          />
+        </Modal>
       )}
-
-      {editModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Editar Conta</h2>
-
-            <form action="" onSubmit={handleEditSubmit}>
-              <ul>
-                <li>
-                  <label htmlFor="edit-account-name">Nome:</label>
-                  <input
-                    type="text"
-                    id="edit-account-name"
-                    name="name"
-                    value={accountFormData.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </li>
-                <li>
-                  <label htmlFor="edit-account-group">Grupo:</label>
-                  <select
-                    value={accountFormData.group_id}
-                    onChange={handleAvailableSubgroups}
-                    id="edit-account-group"
-                    name="group_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {groups.map((group) => (
-                      <option value={group.id} key={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <label htmlFor="edit-account-subgroup">Subgrupo:</label>
-                  <select
-                    value={accountFormData.subgroup_id}
-                    onChange={handleAvailableGroups}
-                    id="edit-account-subgroup"
-                    name="subgroup_id"
-                    required
-                  >
-                    <option value=""></option>
-                    {availableSubgroups.map((subgroup) => (
-                      <option value={subgroup.id} key={subgroup.id}>
-                        {subgroup.name}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => setEditModal(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Editar
-                  </button>
-                </li>
-              </ul>
-            </form>
-          </div>
-        </div>
+      {currentModal === 'edit' && (
+        <Modal>
+          <AccountEditForm
+            groups={groups}
+            subgroups={subgroups}
+            account={editAccount}
+            handleEditSubmit={handleEditSubmit}
+          />
+        </Modal>
       )}
+      {currentModal === 'delete' && (
+        <Modal>
+          <h2>Excluir Conta</h2>
 
-      {deleteModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Excluir Conta</h2>
-
-            <form action="" onSubmit={handleDeleteSubmit}>
-              <ul>
-                <li className="center">Tem certeza que deseja excluir?</li>
-                <li>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => setDeleteModal(false)}
-                  >
-                    Não
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Sim
-                  </button>
-                </li>
-              </ul>
-            </form>
-          </div>
-        </div>
+          <form action="" onSubmit={handleDeleteSubmit}>
+            <ul>
+              <li className="center">Tem certeza que deseja excluir?</li>
+              <li>
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={() => setModal(false)}
+                >
+                  Não
+                </button>
+                <button type="submit" className="btn-primary">
+                  Sim
+                </button>
+              </li>
+            </ul>
+          </form>
+        </Modal>
       )}
     </Container>
   );
