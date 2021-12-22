@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import AuthApi, { ILogin } from '../../api/AuthApi';
 import useAppContext from '../../hooks/useAppContext';
 import useAuthContext from '../../hooks/useAuthContext';
@@ -15,7 +15,7 @@ const Home: React.FC = () => {
   });
 
   const { setLoading } = useAppContext();
-  const { setUser } = useAuthContext();
+  const { setAuthUser } = useAuthContext();
 
   const [error, setError] = useState<boolean>(false);
 
@@ -32,7 +32,7 @@ const Home: React.FC = () => {
 
     AuthApi.login(data).then((response) => {
       if (response.success && response.data) {
-        setUser(response.data);
+        setAuthUser(response.data);
         const path: string =
           location.pathname === '/' ? '/balance_sheet' : location.pathname;
         history.push(path);
@@ -61,10 +61,7 @@ const Home: React.FC = () => {
           <li>- E muito mais</li>
         </ul>
 
-        <p>
-          Faça o login ou <Link to="/signup">clique aqui</Link> para se
-          cadastrar.
-        </p>
+        <p>Faça o login e desfrute.</p>
       </section>
       <section className="right">
         <div>

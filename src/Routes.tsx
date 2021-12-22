@@ -20,13 +20,13 @@ const PrivateRoute: React.FC<IPrivateRoute> = ({
   component: Component,
   ...rest
 }) => {
-  const { user } = useAuthContext();
+  const { authUser } = useAuthContext();
 
   return (
     <Route
       {...rest}
       render={(props) =>
-        user ? (
+        authUser ? (
           <Main>
             <SideBar />
             <Component {...props} />

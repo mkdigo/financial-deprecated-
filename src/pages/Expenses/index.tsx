@@ -12,7 +12,7 @@ const Expenses: React.FC = () => {
   const [debitAccounts, setDebitAccounts] = useState<IAccount[]>([]);
   const [creditAccounts, setCreditAccounts] = useState<IAccount[]>([]);
   const [entryFormData, setEntryFormData] = useState<IEntryRequest>({
-    date: today(),
+    inclusion: today(),
     debit_id: 0,
     credit_id: 0,
     value: '',
@@ -24,11 +24,11 @@ const Expenses: React.FC = () => {
   useEffect(() => {
     AccountApi.get().then((response) => {
       if (response.success && response.data) {
-        const debits = response.data.accounts.filter(
+        const debits = response.data.filter(
           (account) => account.subgroup_id === 8
         );
         setDebitAccounts(debits);
-        const credits = response.data.accounts.filter(
+        const credits = response.data.filter(
           (account) => account.subgroup_id === 1
         );
         setCreditAccounts(credits);
@@ -38,7 +38,7 @@ const Expenses: React.FC = () => {
 
   const resetFormData = (): void => {
     setEntryFormData({
-      date: entryFormData.date,
+      inclusion: entryFormData.inclusion,
       debit_id: 0,
       credit_id: 0,
       value: '',
@@ -107,9 +107,9 @@ const Expenses: React.FC = () => {
           <label htmlFor="date">Data</label>
           <input
             type="date"
-            name="date"
-            id="date"
-            value={entryFormData.date}
+            name="inclusion"
+            id="inclusion"
+            value={entryFormData.inclusion}
             onChange={handleInputChange}
             required
           />

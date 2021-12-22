@@ -1,44 +1,38 @@
-import axios, { catchReturn, IResponse } from './';
+import axios, { catchReturn, IResponse, setHeaders } from './';
 import { IGroup } from './GroupApi';
 import { ISubgroup } from './SubgroupApi';
 
 export interface IAccount {
   id: number;
-  name: string;
   group_id: number;
-  group: string;
   subgroup_id: number;
-  subgroup: string;
+  name: string;
+  description?: string | null;
+  group: IGroup;
+  subgroup: ISubgroup;
 }
 
 export interface IAccountBody {
   id?: number;
-  name: string;
   group_id: number | '';
   subgroup_id: number | '';
+  name: string;
+  description?: string | null;
 }
 
-export interface IAccountEdit {
-  id: number;
-  name: string;
-  group_id: number | '';
-  subgroup_id: number | '';
+export interface IAccountSearchParams {
+  group_id: string;
+  subgroup_id: string;
+  search: string;
 }
 
 export default class AccountApi {
   public static async get(
-    group_id: number | '' = '',
-    subgroup_id: number | '' = ''
-  ): Promise<
-    IResponse<{
-      accounts: IAccount[];
-      groups: IGroup[];
-      subgroups: ISubgroup[];
-    }>
-  > {
+    params?: IAccountSearchParams
+  ): Promise<IResponse<IAccount[]>> {
     try {
-      const url = `/accounts?group_id=${group_id}&subgroup_id=${subgroup_id}`;
-      const response = await axios.get(url);
+      const url = `/accounts`;
+      const response = await axios.get(url, setHeaders(params));
 
       if (!response.data.success) {
         return {
@@ -49,7 +43,7 @@ export default class AccountApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.accounts,
       };
     } catch (error) {
       return catchReturn(error);
@@ -69,7 +63,7 @@ export default class AccountApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.account,
       };
     } catch (error) {
       return catchReturn(error);
@@ -92,7 +86,7 @@ export default class AccountApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.account,
       };
     } catch (error) {
       return catchReturn(error);

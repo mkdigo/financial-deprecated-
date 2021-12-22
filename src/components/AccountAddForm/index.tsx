@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { IGroup } from '../../api/GroupApi';
 import { ISubgroup } from '../../api/SubgroupApi';
 import { AppContext } from '../../contexts/AppProvider';
+import { groupTranslation } from '../../translations';
+import { subgroupTranslation } from '../../translations/subgroupTranslation';
 
 interface IData {
   name: string;
@@ -20,7 +22,7 @@ const AccountAddForm: React.FC<IProps> = ({
   subgroups,
   handleAddSubmit,
 }) => {
-  const { setModal, modal } = useContext(AppContext);
+  const { setModal, modal, language } = useContext(AppContext);
   const [data, setData] = useState<IData>({
     name: '',
     group_id: '',
@@ -53,7 +55,7 @@ const AccountAddForm: React.FC<IProps> = ({
     if (event.target.value) {
       const group: number = parseInt(event.target.value);
       const availables = subgroups.filter(
-        (subgroup) => subgroup.group_id === group
+        (subgroup) => subgroup.group.id === group
       );
       setAvailableSubgroups(availables);
       setData((prev) => ({
@@ -121,7 +123,7 @@ const AccountAddForm: React.FC<IProps> = ({
               <option value=""></option>
               {groups.map((group) => (
                 <option value={group.id} key={group.id}>
-                  {group.name}
+                  {groupTranslation[language].getName(group.name)}
                 </option>
               ))}
             </select>
@@ -137,7 +139,7 @@ const AccountAddForm: React.FC<IProps> = ({
               <option value=""></option>
               {availableSubgroups.map((subgroup) => (
                 <option value={subgroup.id} key={subgroup.id}>
-                  {subgroup.name}
+                  {subgroupTranslation[language].getName(subgroup.name)}
                 </option>
               ))}
             </select>

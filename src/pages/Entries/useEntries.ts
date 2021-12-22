@@ -32,8 +32,7 @@ export default function useEntries(): IUseEntries {
   useEffect(() => {
     setLoading(true);
     AccountApi.get().then((response) => {
-      if (response.success && response.data)
-        setAccounts(response.data.accounts);
+      if (response.success && response.data) setAccounts(response.data);
       setLoading(false);
     });
   }, [setLoading]);
@@ -41,10 +40,11 @@ export default function useEntries(): IUseEntries {
   // Load Entries
   useEffect(() => {
     setLoading(true);
-    EntryApi.get().then((response) => {
+    EntryApi.get({ search }).then((response) => {
       if (response.success && response.data) setEntries(response.data);
       setLoading(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setLoading]);
 
   const handleSetCurrentModal = (modalName: TModal): void => {
@@ -76,7 +76,7 @@ export default function useEntries(): IUseEntries {
   const handleSearchSubmit = (event: FormEvent): void => {
     event.preventDefault();
     setLoading(true);
-    EntryApi.get(search).then((response) => {
+    EntryApi.get({ search }).then((response) => {
       if (response.success && response.data) setEntries(response.data);
       setLoading(false);
     });

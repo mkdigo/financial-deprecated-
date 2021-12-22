@@ -1,15 +1,32 @@
 import axios from 'axios';
-import { getToken, removeToken, setToken } from '../helpers';
+import { getToken, removeToken } from '../helpers';
 
 const apiURL: string = process.env.REACT_APP_API_URL
   ? process.env.REACT_APP_API_URL
   : '';
 
 axios.defaults.baseURL = apiURL;
-axios.defaults.headers.common = { Authorization: `Bearer ${getToken()}` };
+axios.defaults.headers.common = {
+  Accept: 'application/json',
+  Authorization: `Bearer ${getToken()}`,
+};
+axios.defaults.withCredentials = true;
 
-export default axios;
+type TSuccess<T> = {
+  success: true;
+  data: T;
+};
 
+type TError = {
+  success: false;
+  fields?: string[];
+  errors?: any;
+  message?: string;
+};
+
+export type TResponse<T> = TSuccess<T> | TError;
+
+// remove
 export interface IResponse<T> {
   success: boolean;
   message?: string;
@@ -20,6 +37,7 @@ export interface IResponse<T> {
 export const setHeaders = (params: any = {}) => {
   return {
     headers: {
+      Accept: 'application/json',
       Authorization: `Bearer ${getToken()}`,
     },
     params,
@@ -36,22 +54,19 @@ export const transformErrorsArrayToString = (errors: {}): string => {
   } else return 'Something is wrong!';
 };
 
-export const checkTokenExpired = (error: any): void => {
+export const checkTokenError = (error: any): void => {
   if (error.response.status === 401) {
-    if (error.response.data.access_token) {
-      setToken(error.response.data.access_token);
-    } else {
-      removeToken();
-    }
-    window.location.reload();
+    removeToken();
+    window.location.href = '/';
   }
 };
 
 export const catchReturn = (
   error: any
 ): { success: false; message: string } => {
-  checkTokenExpired(error);
   if (error.response) {
+    checkTokenError(error);
+
     return {
       success: false,
       message: error.response.data.message,
@@ -62,3 +77,5 @@ export const catchReturn = (
     message: 'Something is wrong.',
   };
 };
+
+export default axios;

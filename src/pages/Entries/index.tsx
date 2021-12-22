@@ -63,7 +63,7 @@ const Entries: React.FC = () => {
           <ul className="card" key={entry.id}>
             <li>
               <strong>Data:</strong>
-              {entry.date}
+              {entry.inclusion}
             </li>
             <li>
               <strong>Débito:</strong>

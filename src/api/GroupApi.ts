@@ -1,19 +1,21 @@
-import axios, { catchReturn, IResponse } from './';
+import axios, { catchReturn, TResponse } from './';
+
+export type TGroupName =
+  | 'assets'
+  | 'liabilities'
+  | 'equity'
+  | 'income_statement';
 
 export interface IGroup {
   id: number;
-  name: string;
+  name: TGroupName;
+  description: string | null;
 }
 
 export default class GroupApi {
-  public static async get(): Promise<
-    IResponse<{
-      data: IGroup[];
-    }>
-  > {
+  public static async get(): Promise<TResponse<IGroup[]>> {
     try {
-      const url = `/groups`;
-      const response = await axios.get(url);
+      const response = await axios.get('/groups');
 
       if (!response.data.success) {
         return {
@@ -24,7 +26,7 @@ export default class GroupApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.groups,
       };
     } catch (error) {
       return catchReturn(error);

@@ -29,13 +29,13 @@ const EntryForm: React.FC<IProps> = ({
     <form action="" onSubmit={handleSubmit}>
       <ul>
         <li>
-          <label htmlFor="add-entry-date">Data:</label>
+          <label htmlFor="add-entry-inclusion">Data:</label>
           <input
-            type="date"
-            id="add-entry-date"
+            type="inclusion"
+            id="add-entry-inclusion"
             onChange={handleInputChange}
-            value={entryFormData.date}
-            name="date"
+            value={entryFormData.inclusion}
+            name="inclusion"
             ref={inputDateRef}
             required
           />

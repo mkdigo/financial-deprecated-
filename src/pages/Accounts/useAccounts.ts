@@ -1,17 +1,29 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from 'react';
 
 import { AppContext } from '../../contexts/AppProvider';
-import AccountApi, { IAccount, IAccountBody } from '../../api/AccountApi';
-import { IGroup } from '../../api/GroupApi';
-import { ISubgroup } from '../../api/SubgroupApi';
+import AccountApi, {
+  IAccount,
+  IAccountBody,
+  IAccountSearchParams,
+} from '../../api/AccountApi';
+import GroupApi, { IGroup } from '../../api/GroupApi';
+import SubgroupApi, { ISubgroup } from '../../api/SubgroupApi';
 
 interface IUseAccounts {
   accounts: IAccount[];
   setAccounts: React.Dispatch<IAccount[]>;
   groups: IGroup[];
   subgroups: ISubgroup[];
-  filterData: IFilter;
-  handleFilterChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  params: IAccountSearchParams;
+  handleFilterChange: (
+    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => void;
   handleAddAccount: () => void;
   handleAddSubmit: (data: IAccountBody) => void;
   editAccount: IAccountBody;
@@ -19,11 +31,7 @@ interface IUseAccounts {
   handleEditSubmit: (data: IAccountBody) => void;
   handleDeleteAccount: (id: number) => void;
   handleDeleteSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-}
-
-interface IFilter {
-  group_id: number | '';
-  subgroup_id: number | '';
+  searchRef: React.RefObject<HTMLInputElement>;
 }
 
 export default function useAccounts(): IUseAccounts {
@@ -33,9 +41,10 @@ export default function useAccounts(): IUseAccounts {
   const [accounts, setAccounts] = useState<IAccount[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [subgroups, setSubgroups] = useState<ISubgroup[]>([]);
-  const [filterData, setFilterData] = useState<IFilter>({
+  const [params, setParams] = useState<IAccountSearchParams>({
     group_id: '',
     subgroup_id: '',
+    search: '',
   });
   const [editAccount, setEditAccount] = useState<IAccountBody>({
     id: 0,
@@ -45,24 +54,53 @@ export default function useAccounts(): IUseAccounts {
   });
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  useEffect(() => {
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const getData = useCallback(() => {
     setLoading(true);
-    AccountApi.get(filterData.group_id, filterData.subgroup_id).then(
-      (response) => {
-        if (response.success && response.data) {
-          setAccounts(response.data.accounts);
-          setGroups(response.data.groups);
-          setSubgroups(response.data.subgroups);
-          setLoading(false);
-        }
+    AccountApi.get(params).then((response) => {
+      if (response.success && response.data) {
+        setAccounts(response.data);
       }
-    );
-  }, [setLoading, filterData]);
+      setLoading(false);
+    });
+  }, [setLoading, params]);
+
+  useEffect(() => {
+    getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.group_id, params.subgroup_id]);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (searchRef.current) {
+      searchRef.current.onkeyup = () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          getData();
+        }, 500);
+      };
+    }
+
+    return () => clearTimeout(timeout);
+  }, [getData]);
+
+  useEffect(() => {
+    GroupApi.get().then((response) => {
+      if (response.success) setGroups(response.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    SubgroupApi.get().then((response) => {
+      if (response.success) setSubgroups(response.data);
+    });
+  }, []);
 
   const handleFilterChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
   ): void => {
-    setFilterData((prev) => ({
+    setParams((prev) => ({
       ...prev,
       [event.target.name]: event.target.value,
     }));
@@ -163,7 +201,7 @@ export default function useAccounts(): IUseAccounts {
     setAccounts,
     groups,
     subgroups,
-    filterData,
+    params,
     handleFilterChange,
     handleAddAccount,
     handleAddSubmit,
@@ -172,5 +210,6 @@ export default function useAccounts(): IUseAccounts {
     handleEditSubmit,
     handleDeleteAccount,
     handleDeleteSubmit,
+    searchRef,
   };
 }

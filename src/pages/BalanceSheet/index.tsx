@@ -4,6 +4,7 @@ import BalanceSheetApi, {
   IIncomeStatement,
 } from '../../api/BalanceSheetApi';
 import { makeInteger, numberFormat } from '../../helpers';
+import useAppContext from '../../hooks/useAppContext';
 
 import { Container, SelectDate, Balance, IncomeStatement } from './styles';
 
@@ -13,6 +14,7 @@ interface IYearMonth {
 }
 
 const BalanceSheet: React.FC = () => {
+  const { setLoading } = useAppContext();
   const today = new Date();
   const thisYear = String(today.getFullYear());
   const thisMonth =
@@ -30,10 +32,12 @@ const BalanceSheet: React.FC = () => {
       current: {},
       longTerm: {},
       property: {},
+      otherAssets: {},
     },
     liabilities: {
       current: {},
       longTerm: {},
+      otherLiabilities: {},
     },
     equity: {},
     amounts: {
@@ -41,8 +45,10 @@ const BalanceSheet: React.FC = () => {
       currentAssets: 0,
       longTermAssets: 0,
       property: 0,
+      otherAssets: 0,
       currentLiabilities: 0,
       longTermLiabilities: 0,
+      otherLiabilities: 0,
       equity: 0,
       liabilities: 0,
     },
@@ -51,22 +57,26 @@ const BalanceSheet: React.FC = () => {
   const [incomeStatement, setIncomeStatement] = useState<IIncomeStatement>({
     revenues: {},
     expenses: {},
+    taxes: {},
     amounts: {
       revenues: 0,
       expenses: 0,
+      taxes: 0,
       incomeBeforeTaxes: 0,
+      incomeAfterTaxes: 0,
     },
   });
 
   useEffect(() => {
-    console.log(`${yearMonth.year}-${yearMonth.month}`);
+    setLoading(true);
     BalanceSheetApi.get(yearMonth.year, yearMonth.month).then((response) => {
-      console.log(response);
+      setLoading(false);
       if (response.success && response.data) {
         setBalanceSheet(response.data.balance);
         setIncomeStatement(response.data.incomeStatement);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yearMonth]);
 
   const handleInputChange = (
@@ -183,6 +193,24 @@ const BalanceSheet: React.FC = () => {
                   </li>
                 ))}
             </ul>
+
+            <ul>
+              <li>
+                <strong>Outros Ativos</strong>
+                <span>{numberFormat(balanceSheet.amounts.otherAssets)}</span>
+              </li>
+              {balanceSheet.assets.otherAssets &&
+                Object.keys(balanceSheet.assets.otherAssets).map(
+                  (key, index) => (
+                    <li key={index}>
+                      <span>{key}</span>
+                      <span>
+                        {numberFormat(balanceSheet.assets.otherAssets[key])}
+                      </span>
+                    </li>
+                  )
+                )}
+            </ul>
           </div>
           <div className="amount">
             <ul>
@@ -232,6 +260,28 @@ const BalanceSheet: React.FC = () => {
                       <span>{key}</span>
                       <span>
                         {numberFormat(balanceSheet.liabilities.longTerm[key])}
+                      </span>
+                    </li>
+                  )
+                )}
+            </ul>
+
+            <ul>
+              <li>
+                <strong>Outros Passivos</strong>
+                <span>
+                  {numberFormat(balanceSheet.amounts.otherLiabilities)}
+                </span>
+              </li>
+              {balanceSheet.liabilities.otherLiabilities &&
+                Object.keys(balanceSheet.liabilities.otherLiabilities).map(
+                  (key, index) => (
+                    <li key={index}>
+                      <span>{key}</span>
+                      <span>
+                        {numberFormat(
+                          balanceSheet.liabilities.otherLiabilities[key]
+                        )}
                       </span>
                     </li>
                   )
@@ -296,10 +346,22 @@ const BalanceSheet: React.FC = () => {
             <strong>Total das Despesas</strong>
             <strong>{numberFormat(incomeStatement.amounts.expenses)}</strong>
           </li>
-          <li className="netIncome">
+          <li>
             <strong>Lucro/Prejuizo antes dos impostos</strong>
             <strong>
               {numberFormat(incomeStatement.amounts.incomeBeforeTaxes)}
+            </strong>
+          </li>
+          {Object.keys(incomeStatement.taxes).map((key, index) => (
+            <li key={index}>
+              <span>{key}</span>
+              <span>{numberFormat(incomeStatement.taxes[key])}</span>
+            </li>
+          ))}
+          <li className="netIncome">
+            <strong>Lucro/Prejuizo depois dos impostos</strong>
+            <strong>
+              {numberFormat(incomeStatement.amounts.incomeAfterTaxes)}
             </strong>
           </li>
         </ul>

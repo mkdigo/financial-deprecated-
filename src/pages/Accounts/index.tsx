@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 
 import AccountAddForm from '../../components/AccountAddForm';
 import AccountEditForm from '../../components/AccountEditForm';
@@ -8,19 +8,21 @@ import PencilSvg from '../../svg/PencilSvg';
 import PlusSvg from '../../svg/PlusSvg';
 import TrashSvg from '../../svg/TrashSvg';
 
-import { AppContext } from '../../contexts/AppProvider';
 import useAccounts from './useAccounts';
+import useAppContext from '../../hooks/useAppContext';
 
+import { groupTranslation } from '../../translations';
+import { subgroupTranslation } from '../../translations/subgroupTranslation';
 import { Container, Filters } from './styles';
 
 const Accounts: React.FC = () => {
-  const { setModal, currentModal } = useContext(AppContext);
+  const { setModal, currentModal, language } = useAppContext();
 
   const {
     accounts,
     groups,
     subgroups,
-    filterData,
+    params,
     handleFilterChange,
     handleAddAccount,
     handleAddSubmit,
@@ -29,6 +31,7 @@ const Accounts: React.FC = () => {
     handleEditSubmit,
     handleDeleteAccount,
     handleDeleteSubmit,
+    searchRef,
   } = useAccounts();
 
   return (
@@ -50,13 +53,13 @@ const Accounts: React.FC = () => {
           <select
             id="filter-group"
             name="group_id"
-            value={filterData.group_id}
+            value={params.group_id}
             onChange={handleFilterChange}
           >
             <option value=""></option>
             {groups.map((group) => (
               <option value={group.id} key={group.id}>
-                {group.name}
+                {groupTranslation[language].getName(group.name)}
               </option>
             ))}
           </select>
@@ -66,16 +69,27 @@ const Accounts: React.FC = () => {
           <select
             id="filter-subgroup"
             name="subgroup_id"
-            value={filterData.subgroup_id}
+            value={params.subgroup_id}
             onChange={handleFilterChange}
           >
             <option value=""></option>
             {subgroups.map((subgroup) => (
               <option value={subgroup.id} key={subgroup.id}>
-                {subgroup.name}
+                {subgroupTranslation[language].getName(subgroup.name)}
               </option>
             ))}
           </select>
+        </li>
+        <li>
+          <label htmlFor="filter-search">Buscar:</label>
+          <input
+            type="text"
+            id="filter-search"
+            name="search"
+            value={params.search}
+            onChange={handleFilterChange}
+            ref={searchRef}
+          />
         </li>
       </Filters>
 
@@ -87,11 +101,11 @@ const Accounts: React.FC = () => {
           </li>
           <li>
             <strong>Grupo:</strong>
-            {account.group}
+            {groupTranslation[language].getName(account.group.name)}
           </li>
           <li>
             <strong>Subgrupo:</strong>
-            {account.subgroup}
+            {subgroupTranslation[language].getName(account.subgroup.name)}
           </li>
           <div className="card-buttons">
             <button type="button" onClick={() => handleEditAccount(account)}>

@@ -1,5 +1,7 @@
-import axios, { catchReturn } from './index';
+import axios, { catchReturn, TResponse } from './index';
 import { removeToken, setToken } from '../helpers';
+
+axios.defaults.withCredentials = true;
 
 export interface ILogin {
   username: string;
@@ -11,19 +13,12 @@ export interface IUser {
   name: string;
   email: string;
   username: string;
-  is_admin: boolean;
-  active: boolean;
-}
-
-interface IResponse<T> {
-  success: boolean;
-  message?: string;
-  access_token?: string;
-  data?: T;
+  created_at: string;
+  updated_at: string;
 }
 
 export default class UserApi {
-  public static async login(data: ILogin): Promise<IResponse<IUser>> {
+  public static async login(data: ILogin): Promise<TResponse<IUser>> {
     try {
       const response = await axios.post('/login', data);
 
@@ -34,39 +29,55 @@ export default class UserApi {
         };
       }
 
+      const token: string = response.data.token;
+
+      setToken(token);
+
       axios.defaults.headers.common = {
-        Authorization: `Bearer ${response.data.access_token}`,
+        Authorization: `Bearer ${token}`,
       };
-      setToken(response.data.access_token);
 
       return {
         success: true,
         data: response.data.user,
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response) {
+        return {
+          success: false,
+          message: error.response.data.message,
+        };
+      }
       return {
         success: false,
-        message: error.response.data.message,
+        message: error.message,
       };
     }
   }
 
-  public static async logout(): Promise<IResponse<null>> {
+  public static async logout(): Promise<TResponse<null>> {
     try {
       const response = await axios.get('/logout');
 
-      if (response.data.success) removeToken();
+      if (response.data.success) {
+        removeToken();
+
+        return {
+          success: true,
+          data: null,
+        };
+      }
 
       return {
-        success: response.data.success,
-        message: response.data.message,
+        success: false,
+        message: 'Something is wrong!',
       };
     } catch (error) {
       return catchReturn(error);
     }
   }
 
-  public static async me(): Promise<IResponse<IUser>> {
+  public static async me(): Promise<TResponse<IUser>> {
     try {
       const response = await axios.get('/me');
 

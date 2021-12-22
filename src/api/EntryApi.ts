@@ -1,8 +1,8 @@
-import axios, { catchReturn, IResponse } from './';
+import axios, { catchReturn, IResponse, setHeaders } from './';
 
 export interface IEntryRequest {
   id?: number;
-  date: string;
+  inclusion: string;
   debit_id: number;
   credit_id: number;
   value: string;
@@ -11,7 +11,7 @@ export interface IEntryRequest {
 
 export interface IEntry {
   id: number;
-  date: string;
+  inclusion: string;
   debit_id: number;
   debit_name: string;
   credit_id: number;
@@ -20,10 +20,16 @@ export interface IEntry {
   note: string;
 }
 
+export interface IEntrySearchParams {
+  search: string;
+}
+
 export default class EntryApi {
-  public static async get(search: string = ''): Promise<IResponse<IEntry[]>> {
+  public static async get(
+    params?: IEntrySearchParams
+  ): Promise<IResponse<IEntry[]>> {
     try {
-      const response = await axios.get(`/entries?search=${search}`);
+      const response = await axios.get(`/entries`, setHeaders(params));
 
       if (!response.data.success) {
         return {
@@ -34,7 +40,7 @@ export default class EntryApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.entries,
       };
     } catch (error) {
       return catchReturn(error);
@@ -54,7 +60,7 @@ export default class EntryApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.entry,
       };
     } catch (error) {
       return catchReturn(error);
@@ -77,7 +83,7 @@ export default class EntryApi {
 
       return {
         success: true,
-        data: response.data.data,
+        data: response.data.entry,
       };
     } catch (error) {
       return catchReturn(error);

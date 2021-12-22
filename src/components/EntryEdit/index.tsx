@@ -20,7 +20,7 @@ const EntryEdit: React.FC<IProps> = ({ handleSetEntries, accounts, entry }) => {
     id: entry.id,
     debit_id: entry.debit_id,
     credit_id: entry.credit_id,
-    date: entry.date,
+    inclusion: entry.inclusion,
     note: entry.note,
     value: numberFormat(entry.value),
   });
@@ -30,7 +30,7 @@ const EntryEdit: React.FC<IProps> = ({ handleSetEntries, accounts, entry }) => {
       id: entry.id,
       debit_id: entry.debit_id,
       credit_id: entry.credit_id,
-      date: entry.date,
+      inclusion: entry.inclusion,
       note: entry.note,
       value: numberFormat(entry.value),
     });

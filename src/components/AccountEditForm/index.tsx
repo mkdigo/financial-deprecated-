@@ -3,6 +3,8 @@ import { IAccountBody } from '../../api/AccountApi';
 import { IGroup } from '../../api/GroupApi';
 import { ISubgroup } from '../../api/SubgroupApi';
 import { AppContext } from '../../contexts/AppProvider';
+import { groupTranslation } from '../../translations';
+import { subgroupTranslation } from '../../translations/subgroupTranslation';
 
 interface IProps {
   groups: IGroup[];
@@ -17,7 +19,7 @@ const AccountEditForm: React.FC<IProps> = ({
   account,
   handleEditSubmit,
 }) => {
-  const { setModal } = useContext(AppContext);
+  const { setModal, language } = useContext(AppContext);
   const [data, setData] = useState<IAccountBody>({
     id: 0,
     name: '',
@@ -28,7 +30,7 @@ const AccountEditForm: React.FC<IProps> = ({
   useEffect(() => {
     setData(account);
     const availables = subgroups.filter(
-      (subgroup) => subgroup.group_id === account.group_id
+      (subgroup) => subgroup.group.id === account.group_id
     );
     setAvailableSubgroups(availables);
   }, [account, subgroups]);
@@ -51,7 +53,7 @@ const AccountEditForm: React.FC<IProps> = ({
     if (event.target.value) {
       const group: number = parseInt(event.target.value);
       const availables = subgroups.filter(
-        (subgroup) => subgroup.group_id === group
+        (subgroup) => subgroup.group.id === group
       );
       setAvailableSubgroups(availables);
       setData((prev) => ({
@@ -119,7 +121,7 @@ const AccountEditForm: React.FC<IProps> = ({
               <option value=""></option>
               {groups.map((group) => (
                 <option value={group.id} key={group.id}>
-                  {group.name}
+                  {groupTranslation[language].getName(group.name)}
                 </option>
               ))}
             </select>
@@ -135,7 +137,7 @@ const AccountEditForm: React.FC<IProps> = ({
               <option value=""></option>
               {availableSubgroups.map((subgroup) => (
                 <option value={subgroup.id} key={subgroup.id}>
-                  {subgroup.name}
+                  {subgroupTranslation[language].getName(subgroup.name)}
                 </option>
               ))}
             </select>

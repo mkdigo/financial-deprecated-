@@ -6,7 +6,7 @@ import { makeInteger, numberFormat, today } from '../../helpers';
 import EntryForm from '../EntryForm';
 
 const resetData: IEntryRequest = {
-  date: today(),
+  inclusion: today(),
   debit_id: 0,
   credit_id: 0,
   value: '',

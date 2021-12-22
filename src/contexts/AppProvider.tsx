@@ -2,10 +2,13 @@ import React, { createContext, Dispatch, useState } from 'react';
 import Done from '../components/Done';
 import Error from '../components/Error';
 import Load from '../components/Load';
+import { TLanguage } from '../translations';
 
 export type TModal = '' | 'add' | 'edit' | 'delete';
 
 interface IAppContext {
+  language: TLanguage;
+  setLanguage: Dispatch<TLanguage>;
   loading: boolean;
   setLoading: Dispatch<boolean>;
   error: boolean;
@@ -22,6 +25,7 @@ export const AppContext = createContext<IAppContext>({} as any);
 
 const AppProvider: React.FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [language, setLanguage] = useState<TLanguage>('ptBR');
   const [error, setError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>(
     'Algo de errado aconteceu'
@@ -46,6 +50,8 @@ const AppProvider: React.FC = ({ children }) => {
   return (
     <AppContext.Provider
       value={{
+        language,
+        setLanguage,
         loading,
         setLoading,
         error,
